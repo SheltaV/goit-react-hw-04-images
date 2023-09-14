@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { useEffect, useState } from "react";
 import toast, { Toaster } from 'react-hot-toast';
 import { GlobalStyle } from "./GlobalStyle";
 
@@ -9,78 +9,77 @@ import { LoadButton } from "./Button/Button";
 import { Loader } from "./Loader/Loader";
 import { Modal } from "./Modal/Modal";
 
-export class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    selectedImage: '',
-    page: 1,
-    loading: false,
-    modal: false,
-    showButton: true
-  }
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState('');
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState(false);
+  const [showButton, setShowButton] = useState(true);
 
-  async componentDidUpdate(prevProps, prevState) {
-    const {query, page, images} = this.state
-    if (prevState.query !== query || prevState.page !== page) {
+  useEffect(() => {
+    async function getImages() {
+      if (!query) {
+        return;
+      }
       try {
-        this.setState({ loading: true });
+        setLoading(true);
         const { hits, totalHits } = await fetchImages(query, page);
         if (totalHits === 0) {
-          this.setState({showButton: false})
+          setShowButton(false)
           return toast.error('Cannot find any image!');
         }
         if (page === Math.ceil(totalHits / 12)) {
-          this.setState({showButton: false})
+          setShowButton(false)
           toast.success('You reached the end of searched list');
         }
-        this.setState({ images: [...images, ...hits] })
+        setImages([...images, ...hits])
       }
       catch (err) {
         console.log(err)
         toast.error("Cannot find your request!")
       }
       finally {
-        this.setState({ loading: false });
+        setLoading(false);
       }
     }
+    getImages()
+  }, [query, page])
+
+
+  const handleBackdropClick = () => {
+    setModal(false)
   }
 
-  handleBackdropClick = () => {
-  this.setState({modal: false})
-  }
-
-  submitSearch = query => {
-      this.setState({ query, images: [], page: 1 })
+  const submitSearch = query => {
+    setQuery(query);
+    setImages([]);
+    setPage(1);
     }
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1
-    }))
+  const loadMore = () => {
+    setPage(page + 1)
   }
 
-  toggleModal = () => {
-    this.setState(({ modal }) => ({ modal: !modal }))
+  const toggleModal = () => {
+    modal ? setModal(false) : setModal(true)
   }
 
-  chooseSelected = evt => {
-    this.setState({ selectedImage: evt })
+  const chooseSelected = evt => {
+    setSelectedImage(evt)
   }
 
 
-  render() {
-    const {images, loading, modal, selectedImage, showButton} = this.state
-    return (
+  return (
       <div>
-        <Searchbar onSubmit={this.submitSearch} />
-        <ImageGallery images={images} onChoose={this.chooseSelected} onOpen={this.toggleModal}/>
-        {images.length > 0 && showButton && !loading && <LoadButton onLoad={this.loadMore} />}
+        <Searchbar onSubmit={submitSearch} />
+        <ImageGallery images={images} onChoose={chooseSelected} onOpen={toggleModal}/>
+        {images.length > 0 && showButton && !loading && <LoadButton onLoad={loadMore} />}
         {loading && <Loader />}
-        {modal && <Modal imageValue={selectedImage} backdropClick={this.handleBackdropClick} />}
+        {modal && <Modal imageValue={selectedImage} backdropClick={handleBackdropClick} />}
         <GlobalStyle />
         <Toaster position="top-right" />
       </div>
     )
-  };
 };

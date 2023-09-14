@@ -1,31 +1,28 @@
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { Overlay, ModalWindow } from './Modal.styled';
 
-export class Modal extends Component {
+export const Modal = ({imageValue, backdropClick, toggleModal}) => {
 
-componentDidMount() {
-    window.addEventListener('keydown', this.handleKeydown)
-    }
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeydown)
     
-componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeydown)
-  }
-
-handleKeydown = e => {
+    return () => {
+    window.removeEventListener('keydown', handleKeydown)
+    }
+}, [])
+  
+const handleKeydown = e => {
     if (e.code === 'Escape') {
-      console.log(e)
-        this.props.backdropClick()
+        backdropClick()
       }
-    }
-    
-    render() {
-        return (
-           <Overlay onClick={() => this.props.backdropClick()}>
-        <ModalWindow>
-            <img src={this.props.imageValue} alt="img" />
-  </ModalWindow>
+  }
+  
+  
+  return (
+    <Overlay onClick={() => backdropClick()}>
+    <ModalWindow>
+        <img src={imageValue} alt="img" />
+    </ModalWindow>
     </Overlay> 
         )
     }
-
-}
