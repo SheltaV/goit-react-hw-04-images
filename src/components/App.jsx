@@ -34,7 +34,7 @@ export const App = () => {
           setShowButton(false)
           toast.success('You reached the end of searched list');
         }
-        setImages([...images, ...hits])
+        setImages(images => [...images, ...hits])
       }
       catch (err) {
         console.log(err)
